@@ -5,7 +5,11 @@ import {
   signOut,
   onAuthStateChanged,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail, 
+  GoogleAuthProvider,
+  EmailAuthProvider,
+  linkWithPopup,
+  linkWithCredential
 } from 'firebase/auth'
 
 import { doc, setDoc,  getDoc } from 'firebase/firestore'
@@ -35,7 +39,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import ResetPasswordModal from '@/components/reset-password' 
 import { format } from 'date-fns'
-import {zhCN} from 'date-fns/locale/zh-CN'
+import zhCN from 'date-fns/locale/zh-CN'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +48,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+
+import LinkEmailPasswordModal from '@/components/email-provider-integration-dialog'
 
 export default function ProfileTabs() {
   const [user, setUser] = useState<any>(null)
@@ -82,6 +88,33 @@ export default function ProfileTabs() {
     })
     return () => unsubscribe()
   }, [])
+
+  const linkGoogleAccount = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      await linkWithPopup(user, provider)
+      alert('成功关联 Google 帐号！')
+    } catch (err: any) {
+      console.error('关联失败', err)
+      alert('关联失败：' + err.message)
+    }
+  }
+
+  const linkEmailPassword = async () => {
+    const email = prompt('请输入要关联的邮箱:')
+    const password = prompt('请输入密码:')
+  
+    if (!email || !password) return
+  
+    const credential = EmailAuthProvider.credential(email, password)
+    try {
+      await linkWithCredential(user, credential)
+      alert('成功关联 Email/密码 帐号！')
+    } catch (err: any) {
+      console.error('关联失败', err)
+      alert('关联失败：' + err.message)
+    }
+  }
 
   const handlePasswordReset = async () => {
     if (!user?.email) return
@@ -246,6 +279,16 @@ export default function ProfileTabs() {
           {user?.providerData?.[0]?.providerId === 'password' && (
             <ResetPasswordModal email={user.email} />
           )}
+
+          {user?.providerData?.[0]?.providerId === 'password' && (
+            <Button variant="outline" onClick={linkGoogleAccount}>
+              关联 Google 帐号
+            </Button>
+          )}
+
+      {user?.providerData?.[0]?.providerId === 'google.com' && (
+        <LinkEmailPasswordModal user={user} />
+      )}
           
           <Button variant="outline" onClick={handleLogout}>登出账号</Button>
         </TabsContent>
