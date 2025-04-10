@@ -39,7 +39,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import ResetPasswordModal from '@/components/reset-password' 
 import { format } from 'date-fns'
-import zhCN from 'date-fns/locale/zh-CN'
+import {zhCN} from 'date-fns/locale/zh-CN'
 import {
   Dialog,
   DialogContent,
